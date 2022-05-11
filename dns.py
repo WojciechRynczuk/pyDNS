@@ -6,6 +6,20 @@ ip = '127.0.0.1'
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind((ip, port))
 
+def load_zones():
+
+    jsonzone = {}
+    zonefiles = glob,glob('zones/*.zone')
+
+    for zone in zonefiles:
+        with open(zone) as zonedata:
+            data = json.load(zonedata)
+            zonename = data["$origin"]
+            jsonzone[zonename] = data
+    return jsonzone
+
+zonedata = load_zone()
+
 def getflags(flags):
 
     byte1 = bytes(flags[:1])
@@ -44,7 +58,8 @@ get getquestiondomain(data):
 
     for byte in data:
         if state == 1:
-            domainstring += chr(byte)
+            if byte != 0:
+                domainstring += chr(byte)
             x += 1
             if x == expectedlength:
                 domainparts.append(domainstring)
@@ -57,29 +72,46 @@ get getquestiondomain(data):
         else
             state = 1
             expectedlength = byte
-        X += 1
         Y += 1
 
-        questiontype = data[y+1:y+3]
-
-        print(questiontype)
+        questiontype = data[y:y+2]
 
         return (domainparts, questiontype)
+
+def getzone(domain):
+    global zonedata
+
+    zone_name = '.'.join(domain)
+    return zonedata[zone_name]
+
+def getrecs(data):
+    domain, questiontype = getquestiondomain(data)
+    qt = ''
+    if questiontype == b'\x00\x01':
+        qt = 'a'
+
+    zone = getzone(domain)
+
+    return (zone[qt], qt, domainname)
 
 def buildresponse(data):
 
     TransactionID = data[:2]
-    TID = ' '
 
-    for byte in TransactionID:
-        TID += (hex(byte))[2:]
-    print(TID)
 
     Flags = getflags(data[2:4])
 
     QDCOUNT = b'\x00\x01'
 
-    getquestiondomain(data[12:])
+    ANCOUNT = len(getrecs(data[12:])[0])).to_bytes(2, byorder='big')
+
+    NSCOUNT = (0).to_bytes(2, byteorder='big')
+
+    ANCOUNT = (0).to_bytes(2, byteorder='big')
+
+    dnsheader = TransactionID+Flags+QDCOUNT+ANCOUNT+NSCOUNT+ARCOUNT
+
+    print(dnsheader)
 
 while 1:
     data, addr = sock.recvfrom(512)
