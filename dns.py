@@ -1,4 +1,6 @@
 import socket
+import glob
+import json
 
 port = 53
 ip = '127.0.0.1'
@@ -9,7 +11,7 @@ sock.bind((ip, port))
 def load_zones():
 
     jsonzone = {}
-    zonefiles = glob,glob('zones/*.zone')
+    zonefiles = glob.glob('zones/*.zone')
 
     for zone in zonefiles:
         with open(zone) as zonedata:
@@ -18,7 +20,7 @@ def load_zones():
             jsonzone[zonename] = data
     return jsonzone
 
-zonedata = load_zone()
+zonedata = load_zones()
 
 def getflags(flags):
 
@@ -45,9 +47,9 @@ def getflags(flags):
 
     RCODE = '0000'
 
-    return int(QE+OPCODE+AA+TC+RD, 2).to_bytes(1, byteorder='big'+int(RA+Z+RCODE, 2).to_bytes(1, byteorder='big')
+    return int(QR+OPCODE+AA+TC+RD, 2).to_bytes(1, byteorder='big')+int(RA+Z+RCODE, 2).to_bytes(1, byteorder='big')
 
-get getquestiondomain(data):
+def getquestiondomain(data):
 
     state = 0
     expectedlength = 0
@@ -69,10 +71,10 @@ get getquestiondomain(data):
             if byte == 0:
                 domainparts.append(domainstring)
                 break
-        else
+        else:
             state = 1
             expectedlength = byte
-        Y += 1
+        y += 1
 
         questiontype = data[y:y+2]
 
@@ -138,7 +140,7 @@ def buildresponse(data):
 
     QDCOUNT = b'\x00\x01'
 
-    ANCOUNT = len(getrecs(data[12:])[0])).to_bytes(2, byorder='big')
+    ANCOUNT = len(getrecs(data[12:])[0]).to_bytes(2, byorder='big')
 
     NSCOUNT = (0).to_bytes(2, byteorder='big')
 
