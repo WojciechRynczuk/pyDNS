@@ -50,7 +50,6 @@ def getflags(flags):
     return int(QR+OPCODE+AA+TC+RD, 2).to_bytes(1, byteorder='big')+int(RA+Z+RCODE, 2).to_bytes(1, byteorder='big')
 
 def getquestiondomain(data):
-
     state = 0
     expectedlength = 0
     domainstring = ''
@@ -75,10 +74,9 @@ def getquestiondomain(data):
             state = 1
             expectedlength = byte
         y += 1
+    questiontype = data[y:y + 2]
 
-        questiontype = data[y:y+2]
-
-        return (domainparts, questiontype)
+    return (domainparts, questiontype)
 
 def getzone(domain):
     global zonedata
@@ -87,31 +85,33 @@ def getzone(domain):
     return zonedata[zone_name]
 
 def getrecs(data):
-    domain, questiontype = getquestiondomain(data)
+    domainname, questiontype = getquestiondomain(data)
     qt = ''
     if questiontype == b'\x00\x01':
         qt = 'a'
 
-    zone = getzone(domain)
+    zone = getzone(domainname)
 
     return (zone[qt], qt, domainname)
+
 
 def buildquestion(domainname, rectype):
     qbytes = b''
 
     for part in domainname:
-        length =len(part)
+        length = len(part)
         qbytes += bytes([length])
 
         for char in  part:
             qbytes += ord(char).to_bytes(1, byteorder='big')
 
     if rectype == 'a':
-        qbytes += (2).to_bytes(1, byteorder=big)
+        qbytes += (1).to_bytes(2, byteorder='big')
 
-    qbytes += (2).to_bytes(1, byteorder='big')
+    qbytes += (1).to_bytes(2, byteorder='big')
 
     return qbytes
+
 
 def rectobytes(domainname, rectype, recttl, recval):
 
@@ -140,11 +140,11 @@ def buildresponse(data):
 
     QDCOUNT = b'\x00\x01'
 
-    ANCOUNT = len(getrecs(data[12:])[0]).to_bytes(2, byorder='big')
+    ANCOUNT = len(getrecs(data[12:])[0]).to_bytes(2, byteorder='big')
 
     NSCOUNT = (0).to_bytes(2, byteorder='big')
 
-    ANCOUNT = (0).to_bytes(2, byteorder='big')
+    ARCOUNT = (0).to_bytes(2, byteorder='big')
 
     dnsheader = TransactionID+Flags+QDCOUNT+ANCOUNT+NSCOUNT+ARCOUNT
 

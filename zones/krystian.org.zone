@@ -1,0 +1,22 @@
+{
+    "$origin": "krystian.org.",
+    "$ttl": 3600,
+    "soa": {
+        "name": "ns1.krystian.org.",
+        "name": "admin.krystian.org.",
+        "serial": "{time}",
+        "refresh": 3600,
+        "retry": 600,
+        "expire": 604800,
+        "minimum": 86400
+    },
+    "ns":[
+        { "host": "ns1.krystian.org." },
+        { "host": "ns2.krystian.org." }
+    ],
+    "a": [
+        { "name": "@", "ttl": 400, "value": "255.255.255.255" },
+        { "name": "@", "ttl": 400, "value": "127.0.0.1" },
+        { "name": "@", "ttl": 400, "value": "127.0.0.1" }
+    ]
+}
